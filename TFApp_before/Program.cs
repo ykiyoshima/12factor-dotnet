@@ -4,9 +4,15 @@
 builder.Services.AddRazorPages();
 
 builder.Services.AddDbContext<TFAppContext>(options =>
-    options.UseInMemoryDatabase(builder.Configuration.GetConnectionString("TFAppContext")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TFAppContext")));
 
-builder.Services.AddDistributedMemoryCache();
+// builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
+    options.InstanceName = builder.Environment.EnvironmentName.ToLower();
+});
 
 // セッションの設定
 builder.Services.AddSession(options =>
@@ -15,6 +21,13 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+builder.Services.AddHttpClient("weather", httpClient =>
+{
+    httpClient.BaseAddress = new Uri("https://fnappq6lreczdrvyx2.azurewebsites.net/");
+});
+
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
